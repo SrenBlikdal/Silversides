@@ -1,0 +1,52 @@
+#!/bin/bash
+
+### Script below ###
+module load anaconda3/2021.11
+module load perl/5.24.4 
+module load pigz/2.6.0
+module load openjdk/13.0.1
+module load fastqc/0.11.9
+module load trimgalore/0.6.6
+module load samtools/1.12
+module load bowtie2/2.4.2
+module load bismark/0.18.1
+
+# change the file location accordingly
+raw_data=/projects/mjolnir1/people/vrt191/Silversides/1_Raw_data/X204SC22050563-Z01-F001_01/raw_data
+out_direc=/projects/mjolnir1/people/vrt191/Silversides
+
+for SAMPLE in {SAMPLE NAMES}
+do
+
+        mkdir -p $out_direc/2_fastqc_before/$SAMPLE
+        mkdir -p $out_direc/3_trimgalore/$SAMPLE
+        mkdir -p $out_direc/4_fastqc_after/$SAMPLE
+        mkdir -p $out_direc/5_bismark/$SAMPLE
+
+        # fastqc - before trimming
+        cd $raw_data/$SAMPLE
+        file=`ls -a *fq.gz | sort`
+        fastqc $file -t 10 -o $out_direc/2_fastqc_before/$SAMPLE
+
+        # AdapterRemoval
+        cd $out_direc/3_trimgalore/$SAMPLE
+        trim_galore -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -a2 GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG -j 4 --length  --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz
+
+        # fastqc - after trimming
+        cd $out_direc/3_trimgalore/$SAMPLE
+        file=`ls -a $SAMPLE.pair*.gz | sort`
+        fastqc $file -t 10 -o $out_direc/4_fastqc_after/$SAMPLE
+
+        # bismark
+        cd $out_direc/3_adapterremoval/$SAMPLE
+        bismark --multi 10 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE -1 $SAMPLE.pair1.truncated.gz -2 $SAMPLE.pair2.truncated.gz
+
+        # deduplication
+        cd $out_direc/5_bismark/$SAMPLE
+        deduplicate_bismark --paired --bam *bam --multi 10
+
+        # methylation extraction (excluded "--counts"; excluded "--multi")
+        #cd $out_direc/5_bismark/$SAMPLE
+        #bismark_methylation_extractor -p --gzip --bedGraph --scaffolds --buffer_size 85% --ignore_r2 3 --multi 10 -o /home/projects/ku-cbd/data/HoloFish/morten_fish/Epigenome/Novogene_CrappyFish_20samples_24Sep20_Analyses/5.1_bismark --genome_folder /home/projects/ku-cbd/data/HoloFish/Salmon_REF_Genome $SAMPLE.pair1.truncated.gz_bismark_bt2_pe.multiple.deduplicated.bam
+
+done
