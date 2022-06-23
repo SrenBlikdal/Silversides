@@ -15,7 +15,7 @@ module load bismark/0.18.1
 raw_data=/projects/mjolnir1/people/vrt191/Silversides/1_Raw_data/X204SC22050563-Z01-F001_01/raw_data
 out_direc=/projects/mjolnir1/people/vrt191/Silversides
 
-for SAMPLE in {SAMPLE NAMES}
+for SAMPLE in U1Gen5_276
 do
 
         mkdir -p $out_direc/2_fastqc_before/$SAMPLE
@@ -28,18 +28,18 @@ do
         file=`ls -a *fq.gz | sort`
         fastqc $file -t 10 -o $out_direc/2_fastqc_before/$SAMPLE
 
-        # AdapterRemoval
+        # Trimgalore
         cd $out_direc/3_trimgalore/$SAMPLE
-        trim_galore -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -a2 GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG -j 4 --length  --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz
+        trim_galore -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -j 4 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz
 
         # fastqc - after trimming
         cd $out_direc/3_trimgalore/$SAMPLE
-        file=`ls -a $SAMPLE.pair*.gz | sort`
+        file=`ls -a $SAMPLE_*.gz | sort`
         fastqc $file -t 10 -o $out_direc/4_fastqc_after/$SAMPLE
 
         # bismark
-        cd $out_direc/3_adapterremoval/$SAMPLE
-        bismark --multi 10 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE -1 $SAMPLE.pair1.truncated.gz -2 $SAMPLE.pair2.truncated.gz
+        cd $out_direc/3_trimgalore/$SAMPLE
+        bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE -n 1 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_1.fq.gz -u 100000
 
         # deduplication
         cd $out_direc/5_bismark/$SAMPLE
