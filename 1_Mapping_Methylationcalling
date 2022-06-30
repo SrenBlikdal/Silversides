@@ -28,9 +28,10 @@ do
         file=`ls -a *fq.gz | sort`
         fastqc $file -t 10 -o $out_direc/2_fastqc_before/$SAMPLE
 
-        # Trimgalore
-        cd $out_direc/3_trimgalore/$SAMPLE
-        trim_galore -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -j 4 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz
+        # Trimgalore (Adapterpair 2 seems to be best)
+        cd $out_direc/3_trimgalore/$SAMPLE 
+        #trim_galore -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -j 4 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz
+        trim_galore -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATACTCCGAGATCTCG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTGAACGTGTGAGTGTAGA -j 4 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz 
 
         # fastqc - after trimming
         cd $out_direc/3_trimgalore/$SAMPLE
@@ -38,8 +39,10 @@ do
         fastqc $file -t 10 -o $out_direc/4_fastqc_after/$SAMPLE
 
         # bismark
+        #To increase the mapping rate 
+        #https://github.com/FelixKrueger/Bismark/blob/master/Docs/FAQ.md#issue-2-low-mapping-effiency-of-paired-end-bisulfite-seq-sample
         cd $out_direc/3_trimgalore/$SAMPLE
-        bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE -n 1 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_1.fq.gz -u 100000
+        bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE --score_min L,0,-0.6 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_2.fq.gz -u 100000
 
         # deduplication
         cd $out_direc/5_bismark/$SAMPLE
