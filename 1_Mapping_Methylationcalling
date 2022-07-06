@@ -31,7 +31,7 @@ do
         # Trimgalore (Adapterpair 2 seems to be best)
         cd $out_direc/3_trimgalore/$SAMPLE 
         #trim_galore -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -j 4 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz
-        trim_galore -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATACTCCGAGATCTCG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTGAACGTGTGAGTGTAGA -j 4 --three_prime_clip_R2 1 --clip_R1 3 --clip_R2 12 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz 
+        trim_galore -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATACTCCGAGATCTCG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTGAACGTGTGAGTGTAGA -j 4 --three_prime_clip_R2 3 --clip_R1 3 --clip_R2 15 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz 
 
         # fastqc - after trimming
         cd $out_direc/3_trimgalore/$SAMPLE
