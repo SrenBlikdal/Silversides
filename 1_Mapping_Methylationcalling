@@ -15,38 +15,38 @@ module load bismark/0.18.1
 raw_data=/projects/mjolnir1/people/vrt191/Silversides/1_Raw_data/X204SC22050563-Z01-F001_01/raw_data
 out_direc=/projects/mjolnir1/people/vrt191/Silversides
 
-for SAMPLE in U1Gen5_276
+for SAMPLE in U1Gen5_276 U1Gen5_326 U2Gen5_1465 U2Gen5_559 U2Gen5_567 U1Gen5_323 U1Gen5_353 U2Gen5_553 U2Gen5_562
 do
 
         mkdir -p $out_direc/2_fastqc_before/$SAMPLE
-        mkdir -p $out_direc/3_trimgalore/$SAMPLE
-        mkdir -p $out_direc/4_fastqc_after/$SAMPLE
-        mkdir -p $out_direc/5_bismark/$SAMPLE
+        #mkdir -p $out_direc/3_trimgalore/$SAMPLE
+        #mkdir -p $out_direc/4_fastqc_after/$SAMPLE
+        #mkdir -p $out_direc/5_bismark/$SAMPLE
 
         # fastqc - before trimming
-        cd $raw_data/$SAMPLE
-        file=`ls -a *fq.gz | sort`
-        fastqc $file -t 10 -o $out_direc/2_fastqc_before/$SAMPLE
+        #cd $raw_data/$SAMPLE
+        #file=`ls -a *fq.gz | sort`
+        #fastqc $file -t 10 -o $out_direc/2_fastqc_before/$SAMPLE
 
         # Trimgalore (Adapterpair 2 seems to be best)
-        cd $out_direc/3_trimgalore/$SAMPLE 
+        #cd $out_direc/3_trimgalore/$SAMPLE 
         #trim_galore -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -j 4 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz
-        trim_galore -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATACTCCGAGATCTCG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTGAACGTGTGAGTGTAGA -j 4 --three_prime_clip_R2 3 --clip_R1 3 --clip_R2 15 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz 
+        #trim_galore -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATACTCCGAGATCTCG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTGAACGTGTGAGTGTAGA -j 4 --three_prime_clip_R2 3 --clip_R1 3 --clip_R2 15 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz 
 
         # fastqc - after trimming
-        cd $out_direc/3_trimgalore/$SAMPLE
-        file=`ls -a $SAMPLE_*.gz | sort`
-        fastqc $file -t 10 -o $out_direc/4_fastqc_after/$SAMPLE
+        #cd $out_direc/3_trimgalore/$SAMPLE
+        #file=`ls -a $SAMPLE_*.gz | sort`
+        #fastqc $file -t 10 -o $out_direc/4_fastqc_after/$SAMPLE
 
         # bismark
         #To increase the mapping rate 
         #https://github.com/FelixKrueger/Bismark/blob/master/Docs/FAQ.md#issue-2-low-mapping-effiency-of-paired-end-bisulfite-seq-sample
-        cd $out_direc/3_trimgalore/$SAMPLE
-        bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE --score_min L,0,-0.6 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_2.fq.gz -u 100000
+        #cd $out_direc/3_trimgalore/$SAMPLE
+        #bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE --score_min L,0,-0.6 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_2.fq.gz -u 100000
 
         # deduplication
-        cd $out_direc/5_bismark/$SAMPLE
-        deduplicate_bismark --paired --bam *bam --multi 10
+        #cd $out_direc/5_bismark/$SAMPLE
+        #deduplicate_bismark --paired --bam *bam --multi 10
 
         # methylation extraction (excluded "--counts"; excluded "--multi")
         #cd $out_direc/5_bismark/$SAMPLE
