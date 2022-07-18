@@ -24,9 +24,9 @@ do
         #mkdir -p $out_direc/5_bismark/$SAMPLE
 
         # fastqc - before trimming
-        #cd $raw_data/$SAMPLE
-        #file=`ls -a *fq.gz | sort`
-        #fastqc $file -t 10 -o $out_direc/2_fastqc_before/$SAMPLE
+        cd $raw_data/$SAMPLE
+        file=`ls -a *fq.gz | sort`
+        fastqc $file -t 10 -o $out_direc/2_fastqc_before/$SAMPLE
 
         # Trimgalore (Adapterpair 2 seems to be best)
         #cd $out_direc/3_trimgalore/$SAMPLE 
