@@ -12,16 +12,16 @@ module load bowtie2/2.4.2
 module load bismark/0.18.1
 
 # change the file location accordingly
-raw_data=/projects/mjolnir1/people/vrt191/Silversides/1_Raw_data/X204SC22050563-Z01-F001_01/raw_data
+raw_data=/projects/mjolnir1/people/vrt191/Silversides/1_Raw_data/X204SC22050563-Z01-F001_02/raw_data
 out_direc=/projects/mjolnir1/people/vrt191/Silversides
 
-for SAMPLE in U1Gen5_276 U1Gen5_326 U2Gen5_1465 U2Gen5_559 U2Gen5_567 U1Gen5_323 U1Gen5_353 U2Gen5_553 U2Gen5_562
+for SAMPLE in D1Gen5_200 D1Gen5_245 D1Gen5_339 D2Gen5_1155 D2Gen5_506 D2Gen5_534 R1Gen5_175 R1Gen5_178 D1Gen5_239 D1Gen5_256 D2Gen5_106 D2Gen5_212 D2Gen5_523 R1Gen5_174 R1Gen5_176 R1Gen5_182 U1Gen5_229
 do
 
         mkdir -p $out_direc/2_fastqc_before/$SAMPLE
-        #mkdir -p $out_direc/3_trimgalore/$SAMPLE
-        #mkdir -p $out_direc/4_fastqc_after/$SAMPLE
-        #mkdir -p $out_direc/5_bismark/$SAMPLE
+        mkdir -p $out_direc/3_trimgalore/$SAMPLE
+        mkdir -p $out_direc/4_fastqc_after/$SAMPLE
+        mkdir -p $out_direc/5_bismark/$SAMPLE
 
         # fastqc - before trimming
         cd $raw_data/$SAMPLE
@@ -31,25 +31,25 @@ do
         # Trimgalore (Adapterpair 2 seems to be best)
         #cd $out_direc/3_trimgalore/$SAMPLE 
         #trim_galore -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -j 4 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz
-        #trim_galore -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATACTCCGAGATCTCG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTGAACGTGTGAGTGTAGA -j 4 --three_prime_clip_R2 3 --clip_R1 3 --clip_R2 15 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz 
+        trim_galore -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATACTCCGAGATCTCG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTGAACGTGTGAGTGTAGA -j 4 --clip_R2 15 --path_to_cutadapt /projects/mjolnir1/apps/conda/cutadapt-3.7/bin/cutadapt --paired $raw_data/$SAMPLE/*_1.fq.gz $raw_data/$SAMPLE/*_2.fq.gz 
 
         # fastqc - after trimming
-        #cd $out_direc/3_trimgalore/$SAMPLE
-        #file=`ls -a $SAMPLE_*.gz | sort`
-        #fastqc $file -t 10 -o $out_direc/4_fastqc_after/$SAMPLE
+        cd $out_direc/3_trimgalore/$SAMPLE
+        file=`ls -a $SAMPLE_*.gz | sort`
+        fastqc $file -t 10 -o $out_direc/4_fastqc_after/$SAMPLE
 
         # bismark
         #To increase the mapping rate 
         #https://github.com/FelixKrueger/Bismark/blob/master/Docs/FAQ.md#issue-2-low-mapping-effiency-of-paired-end-bisulfite-seq-sample
-        #cd $out_direc/3_trimgalore/$SAMPLE
-        #bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE --score_min L,0,-0.6 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_2.fq.gz -u 100000
+        cd $out_direc/3_trimgalore/$SAMPLE
+        bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE --score_min L,0,-0.6 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_2.fq.gz -u 100000
 
         # deduplication
-        #cd $out_direc/5_bismark/$SAMPLE
-        #deduplicate_bismark --paired --bam *bam --multi 10
+        cd $out_direc/5_bismark/$SAMPLE
+        deduplicate_bismark --paired --bam *bam --multi 10
 
         # methylation extraction (excluded "--counts"; excluded "--multi")
-        #cd $out_direc/5_bismark/$SAMPLE
-        #bismark_methylation_extractor -p --gzip --bedGraph --scaffolds --buffer_size 85% --ignore_r2 3 --multi 10 -o /home/projects/ku-cbd/data/HoloFish/morten_fish/Epigenome/Novogene_CrappyFish_20samples_24Sep20_Analyses/5.1_bismark --genome_folder /home/projects/ku-cbd/data/HoloFish/Salmon_REF_Genome $SAMPLE.pair1.truncated.gz_bismark_bt2_pe.multiple.deduplicated.bam
+        cd $out_direc/5_bismark/$SAMPLE
+        bismark_methylation_extractor -p --gzip --bedGraph --scaffolds --buffer_size 85% --multi 10 --ignore_3prime_r2 1 -o $out_direc/5_bismark/$SAMPLE --genome-fol /projects/mjolnir1/people/vrt191/Silversides/Reference *.bam
 
 done
