@@ -42,14 +42,14 @@ do
         #To increase the mapping rate 
         #https://github.com/FelixKrueger/Bismark/blob/master/Docs/FAQ.md#issue-2-low-mapping-effiency-of-paired-end-bisulfite-seq-sample
         cd $out_direc/3_trimgalore/$SAMPLE
-        bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE --score_min L,0,-0.6 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_2.fq.gz -u 100000
+        bismark --parallel 4 --genome /projects/mjolnir1/people/vrt191/Silversides/Reference --output_dir $out_direc/5_bismark/$SAMPLE --score_min L,0,-0.6 -1 $SAMPLE_*_1.fq.gz -2 $SAMPLE_*_2.fq.gz
 
         # deduplication
         cd $out_direc/5_bismark/$SAMPLE
-        deduplicate_bismark --paired --bam *bam --multi 10
+        deduplicate_bismark --paired --bam *bam --parallel 4
 
         # methylation extraction (excluded "--counts"; excluded "--multi")
         cd $out_direc/5_bismark/$SAMPLE
-        bismark_methylation_extractor -p --gzip --bedGraph --scaffolds --buffer_size 85% --multi 10 --ignore_3prime_r2 1 -o $out_direc/5_bismark/$SAMPLE --genome-fol /projects/mjolnir1/people/vrt191/Silversides/Reference *.bam
+        bismark_methylation_extractor -p --gzip --bedGraph --scaffolds --buffer_size 85% --parallel 4 --ignore_3prime_r2 1 -o $out_direc/5_bismark/$SAMPLE --genome-fol /projects/mjolnir1/people/vrt191/Silversides/Reference *.bam
 
 done
