@@ -1,0 +1,101 @@
+library("bsseq")
+library("dmrseq")
+library("tidyverse")
+library("ggrepel")
+library("readr")
+
+setwd(dir="/projects/mjolnir1/people/vrt191/Silversides/cov_files/")
+file.list<-list.files()
+bs<-bsseq::read.bismark(file.list, rmZeroCov = TRUE, strandCollapse = TRUE)
+
+SNP<-read_table("~/Documents/Silversides/global_snp_list_Mme_exp_wild_mindp186_maxdp1460_minind282_minq20.txt", 
+                col_names = c('chr','start','ref','alt')) %>% mutate(., end= start+1) %>% as(., "GRanges")
+                
+bs<-subsetByOverlaps(bs,SNP, invert = TRUE)
+bs<-chrSelectBSseq(bs, seqnames = c("Mme_chr01","Mme_chr02", "Mme_chr03", "Mme_chr04","Mme_chr05",
+                                   "Mme_chr06","Mme_chr07","Mme_chr08","Mme_chr09","Mme_chr10",
+                                   "Mme_chr11", "Mme_chr12","Mme_chr13","Mme_chr14","Mme_chr15",
+                                   "Mme_chr16","Mme_chr17","Mme_chr18", "Mme_chr19", "Mme_chr20",
+                                   "Mme_chr21","Mme_chr22","Mme_chr23","Mme_chr24"))
+
+
+sample.id <- c("D1Gen5_200","D1Gen5_239","D1Gen5_245","D1Gen5_256","D1Gen5_339",
+               "D2Gen5_106","D2Gen5_1155","D2Gen5_212","D2Gen5_506","D2Gen5_523","D2Gen5_534",
+               "R1Gen5_174","R1Gen5_175","R1Gen5_176","R1Gen5_178","R1Gen5_182",
+               "U1Gen5_229","U1Gen5_276","U1Gen5_323","U1Gen5_326","U1Gen5_353",
+               "U2Gen5_1465","U2Gen5_553","U2Gen5_559","U2Gen5_562","U2Gen_567")
+
+group <- c(rep("D1",5),rep("D2",6),rep("R1",5),rep("U1",5),rep("U2",5))
+
+pData(bs)$group<-group
+pData(bs)$ID<-sample.id
+
+###Pairwise comparison
+
+##D1
+sample.idx <- which(pData(bs)$group %in% c("D1","D2"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_D1_vs_D2<-dmrseq(bs.filtered,testCovariate = "group", cutoff = 0.1)
+
+sample.idx <- which(pData(bs)$group %in% c("D1","R1"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_D1_vs_R1<-dmrseq(bs.filtered,testCovariate = "group", cutoff = 0.1)
+
+sample.idx <- which(pData(bs)$group %in% c("D1","U1"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_D1_vs_U1<-dmrseq(bs.filtered,testCovariate = "group", cutoff = 0.1)
+
+sample.idx <- which(pData(bs)$group %in% c("D1","U2"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_D1_vs_U2<-dmrseq(bs.filtered,testCovariate = "group", cutoff = 0.1)
+
+##D2 
+sample.idx <- which(pData(bs)$group %in% c("D2","R1"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_D2_vs_R1<-dmrseq(bs.filtered,testCovariate = "group", cutoff = 0.1)
+
+sample.idx <- which(pData(bs)$group %in% c("D2","U1"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_D2_vs_U1<-dmrseq(bs.filtered,testCovariate = "group", cutoff = 0.1)
+
+sample.idx <- which(pData(bs)$group %in% c("D2","U2"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_D2_vs_U2<-dmrseq(bs.filtered,testCovariate = "group", cutoff = 0.1)
+
+##R1 
+sample.idx <- which(pData(bs)$group %in% c("R1","U1"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_R1_vs_D2<-dmrseq(bs.filtered,testCovariate = "group", cutoff = 0.1)
+
+sample.idx <- which(pData(bs)$group %in% c("R1","U2"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_R1_vs_U2<-dmrseq(bs.filtered,testCovariate =  "group", cutoff = 0.1)
+
+##U1 
+sample.idx <- which(pData(bs)$group %in% c("U1","U2"))
+bs.filtered <- bs[,sample.idx]
+loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Cov")==0) == 0)
+bs.filtered <- bs.filtered[loci.idx,]
+regions_U1_vs_U2<-dmrseq(bs.filtered,testCovariate =  "group", cutoff = 0.1)
+
+save.image()
+
+
