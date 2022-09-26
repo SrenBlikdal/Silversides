@@ -1,3 +1,5 @@
+#!/usr/bin/Rscript
+
 library("bsseq")
 library("dmrseq")
 library("tidyverse")
@@ -8,7 +10,7 @@ setwd(dir="/projects/mjolnir1/people/vrt191/Silversides/cov_files/")
 file.list<-list.files()
 bs<-bsseq::read.bismark(file.list, rmZeroCov = TRUE, strandCollapse = TRUE)
 
-SNP<-read_table("~/Documents/Silversides/global_snp_list_Mme_exp_wild_mindp186_maxdp1460_minind282_minq20.txt", 
+SNP<-read_table("/projects/mjolnir1/people/vrt191/Silversides/global_snp_list_Mme_exp_wild_mindp186_maxdp1460_minind282_minq20.txt", 
                 col_names = c('chr','start','ref','alt')) %>% mutate(., end= start+1) %>% as(., "GRanges")
                 
 bs<-subsetByOverlaps(bs,SNP, invert = TRUE)
@@ -96,6 +98,8 @@ loci.idx <- which(DelayedMatrixStats::rowSums2(getCoverage(bs.filtered, type="Co
 bs.filtered <- bs.filtered[loci.idx,]
 regions_U1_vs_U2<-dmrseq(bs.filtered,testCovariate =  "group", cutoff = 0.1)
 
-save.image()
+#Save workspace
+save.image(file ="/projects/mjolnir1/people/vrt191/Silversides/DMregions.RData")
 
-
+q()
+n
