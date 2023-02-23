@@ -1,0 +1,24 @@
+module load samtools
+cd /projects/mjolnir1/people/vrt191/Silversides/6_annotation
+
+samtools faidx Mmenidia_refgenome_anchored.all_renamed_v2.fasta
+cut -f1,2 Mmenidia_refgenome_anchored.all_renamed_v2.fasta.fai > Mmenidia_refgenome_chrlength.txt
+
+awk '{if($3=="gene")print $0}' mme_annotation_anchored_genome_final_clean.noseq.gff >  Mmenidia_gene.gff 
+convert2bed --input=gff < Mmenidia_gene.gff  > Mmenidia_gene.bed
+
+#Make file with -50 promotors
+bedtools flank -i Mmenidia_gene.bed -g Mmenidia_refgenome_chrlength.txt -l 50 -r 0 -s > Mmenidia_gene_-50promoter.bed
+
+for i in {-50..-10000..50}
+do awk -F"\t" '$2 < $3 { print $0 }' Mmenidia_gene_$((i))promoter.bed |
+bedtools flank -i stdin -g Mmenidia_refgenome_chrlength.txt -l 50 -r 0 -s > tss/Mmenidia_gene_$((i-50))promoter.bed
+done
+
+#Make file with 50 promotors (into the genebody)
+bedtools flank -i Mmenidia_gene.bed -g Mmenidia_refgenome_chrlength.txt -l 0 -r 50 -s > Mmenidia_gene_50promoter.bed
+
+for i in {50..10000..50}
+do awk -F"\t" '$2 < $3 { print $0 }' Mmenidia_gene_$((i))promoter.bed |
+bedtools flank -i stdin -g Mmenidia_refgenome_chrlength.txt -l -0 -r 50 -s > Mmenidia_gene_$((i+50))promoter.bed
+done
